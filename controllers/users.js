@@ -62,7 +62,7 @@ const login = (req, res, next) => {
       res.send({ token });
     })
     .catch((err) => {
-      next(new UnauthorizedError(err.message));
+      next(new UnauthorizedError("Вот такая ошибка"));
     });
 };
 
