@@ -6,6 +6,7 @@ const { PORT = 3000 } = process.env;
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const routerUsers = require('./routes/users');
 const routerMovies = require('./routes/movies');
 const routerNotFound = require('./errors/error-not-found');
@@ -24,6 +25,7 @@ const auth = require('./middlewares/auth');
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 app.use(requestLogger);
 
