@@ -1,4 +1,14 @@
 const { celebrate, Joi } = require('celebrate');
+const isUrl = require('validator/lib/isURL');
+const BadRequetError = require('../errors/bad-request-err');
+
+const validationUrl = (url) => {
+  const validate = isUrl(url);
+  if (validate) {
+    return url;
+  }
+  throw new BadRequetError('Некорректный адрес URL');
+};
 
 const validationCreateMovie = celebrate({
   body: Joi.object().keys({
@@ -7,12 +17,10 @@ const validationCreateMovie = celebrate({
     duration: Joi.number().required(),
     year: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string().required()
-      .regex(/^(https?:\/\/)?([\da-z.-]+).([a-z.]{2,6})([/\w.-]*)*\/?$/),
-    trailerLink: Joi.string().required()
-      .regex(/^(https?:\/\/)?([\da-z.-]+).([a-z.]{2,6})([/\w.-]*)*\/?$/),
-    thumbnail: Joi.string().required()
-      .regex(/^(https?:\/\/)?([\da-z.-]+).([a-z.]{2,6})([/\w.-]*)*\/?$/),
+    image: Joi.string().required().custom(validationUrl),
+    trailerLink: Joi.string().required().custom(validationUrl),
+    thumbnail: Joi.string().required().custom(validationUrl),
+    movieId: Joi.number().required(),
     nameRU: Joi.string().required(),
     nameEN: Joi.string().required(),
   }),
@@ -26,7 +34,7 @@ const validationMovieId = celebrate({
 
 const validationCreateUser = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
+    name: Joi.string().min(2).max(30).required(),
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),

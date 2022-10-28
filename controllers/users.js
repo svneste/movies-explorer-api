@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const BadRequetError = require('../errors/bad-request-err');
 const EmailExist = require('../errors/email-err');
-const UnauthorizedError = require('../errors/unauthorized-err');
+// const UnauthorizedError = require('../errors/unauthorized-err');
+const NotFoundError = require('../errors/not-found-err');
 
 const createUser = (req, res, next) => {
   const {
@@ -19,7 +20,13 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => res.send({ data: user }))
+    .then(() => {
+      res.send({
+        data: {
+          name, email,
+        },
+      });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') next(new BadRequetError('Переданы некорректные данные при создании пользователя'));
       else if (err.name === 'MongoServerError' && err.code === 11000) {
@@ -31,8 +38,8 @@ const createUser = (req, res, next) => {
 };
 
 const findUser = (req, res, next) => {
-  User.find({})
-    .then((users) => res.send(users))
+  User.findById(req.user._id)
+    .then((user) => res.send(user))
     .catch(next);
 };
 
@@ -44,14 +51,20 @@ const refreshUserInfo = (req, res, next) => {
     { name, email },
     { new: true },
   )
+    .orFail(() => {
+      throw new NotFoundError('Такой пользователь не найден');
+    })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequetError('Неверные данные'));
-      } else {
-        next(err);
+        throw new BadRequetError('Неверные данные');
       }
-    });
+      if (err.code === 11000) {
+        throw new EmailExist('Данный email уже существует');
+      }
+      next(err);
+    })
+    .catch(next);
 };
 
 const login = (req, res, next) => {
@@ -62,9 +75,7 @@ const login = (req, res, next) => {
       // const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch((err) => {
-      next(new UnauthorizedError(err.message));
-    });
+    .catch(next);
 };
 
 module.exports = {
