@@ -45,9 +45,6 @@ const createMovie = (req, res, next) => {
 const findMovies = (req, res, next) => {
   Movie.find({ owner: req.user._id })
     .then((movies) => {
-      if (!movies) {
-        throw new NotFoundError('Данные не найдены!');
-      }
       res.send(movies);
     })
     .catch(next);
