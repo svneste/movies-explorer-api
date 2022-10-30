@@ -10,6 +10,7 @@ const cors = require('cors');
 const routerUsers = require('./routes/users');
 const routerMovies = require('./routes/movies');
 const routerNotFound = require('./errors/error-not-found');
+const errorHandler = require('./middlewares/errorHandler');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
@@ -41,17 +42,7 @@ app.use('*', routerNotFound);
 app.use(errorLogger);
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res
-    .status(statusCode)
-    .send({
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
-  next();
-});
+app.use(errorHandler);
 
 mongoose.connect(DB_ADDRESS, {
   useNewUrlParser: true,
