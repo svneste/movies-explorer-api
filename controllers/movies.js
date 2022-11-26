@@ -57,7 +57,7 @@ const deleteCard = (req, res, next) => {
       if (!movie.owner.equals(req.user._id)) {
         next(new Forbidden('Это не ваша карточка фильма'));
       } else {
-        Movie.deleteOne({ movie })
+        Movie.deleteOne({ _id: req.params.cardId })
           .then(() => res.send({ message: 'Фильм удален' }))
           .catch(next);
       }
